@@ -1,5 +1,6 @@
 package entities;
 
+import entities.enums.CombinationRank;
 import entities.enums.Rank;
 import entities.enums.Suit;
 
@@ -7,7 +8,7 @@ import java.util.*;
 
 public class PokerHand implements Comparable<PokerHand> {
     private final List<Card> cards;
-    private int combinationRank;   // Сила комбинации
+    private CombinationRank combinationRank;   // Сила комбинации
     private int combinationPower;  // Сила внутри одной комбинации
 
 
@@ -30,7 +31,7 @@ public class PokerHand implements Comparable<PokerHand> {
         evaluateHand();
     }
 
-    public int getCombinationRank() {
+    public CombinationRank getCombinationRank() {
         return combinationRank;
     }
 
@@ -40,7 +41,7 @@ public class PokerHand implements Comparable<PokerHand> {
 
     private boolean checkForStraightFlush() {
         if (checkForFlush() && checkForStraight()) {
-            combinationRank = 8;
+            combinationRank = CombinationRank.StraightFlush;
             return true;
         }
         return false;
@@ -51,7 +52,7 @@ public class PokerHand implements Comparable<PokerHand> {
         Rank kickerRank = getRankByCount(1);
 
         if (fourOfKindRank != null && kickerRank != null) {
-            combinationRank = 7;
+            combinationRank = CombinationRank.FourOfAKind;
             combinationPower = Integer.parseInt(fourOfKindRank.getValue() + String.format("%02d", kickerRank.getValue()));
             return true;
         }
@@ -63,7 +64,7 @@ public class PokerHand implements Comparable<PokerHand> {
         Rank pairRank = getRankByCount(2);
 
         if (threeOfKindRank != null && pairRank != null) {
-            combinationRank = 6;
+            combinationRank = CombinationRank.FullHouse;
             combinationPower = Integer.parseInt(threeOfKindRank.getValue() + String.format("%02d", pairRank.getValue()));
             return true;
         }
@@ -77,7 +78,7 @@ public class PokerHand implements Comparable<PokerHand> {
                 return false;
             }
         }
-        combinationRank = 5;
+        combinationRank = CombinationRank.Flush;
         StringBuilder combinationPowerString = new StringBuilder();
         for (int i = cards.size() - 1; i >= 0; i--) {
             combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
@@ -105,7 +106,7 @@ public class PokerHand implements Comparable<PokerHand> {
         }
 
         if (isSequential || isAceLowStraight) {
-            combinationRank = 4;
+            combinationRank = CombinationRank.Straight;
             if (isAceLowStraight) {
                 combinationPower = cards.get(3).getRank().getValue();
             }
@@ -121,7 +122,7 @@ public class PokerHand implements Comparable<PokerHand> {
         Rank threeOfKindRank = getRankByCount(3);
 
         if (threeOfKindRank != null) {
-            combinationRank = 3;
+            combinationRank = CombinationRank.ThreeOfAKind;
             StringBuilder combinationPowerString = new StringBuilder(threeOfKindRank.getValue());
             combinationPowerString.append(String.format("%d", threeOfKindRank.getValue()));
             for (int i = cards.size() - 1; i >= 0; i--) {
@@ -165,7 +166,7 @@ public class PokerHand implements Comparable<PokerHand> {
                         append(String.format("%02d", cards.get(0).getRank().getValue())).
                         append(String.format("%02d", singlePair.getValue()));
             }
-            combinationRank = 2;
+            combinationRank = CombinationRank.TwoPair;
             combinationPower = Integer.parseInt(combinationPowerString.toString());
             return true;
         }
@@ -186,7 +187,7 @@ public class PokerHand implements Comparable<PokerHand> {
             }
         }
 
-        combinationRank = 1;
+        combinationRank = CombinationRank.Pair;
         combinationPower = Integer.parseInt(combinationPowerString.toString());
         return true;
     }
@@ -201,7 +202,7 @@ public class PokerHand implements Comparable<PokerHand> {
         for (int i = cards.size() - 2; i >= 0; i--) {
             combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
         }
-        combinationRank = 0;
+        combinationRank = CombinationRank.HighCard;
         combinationPower = Integer.parseInt(combinationPowerString.toString());
         return true;
     }
@@ -239,7 +240,7 @@ public class PokerHand implements Comparable<PokerHand> {
 
     @Override
     public int compareTo(PokerHand other) {
-        int rankComparison = Integer.compare(other.combinationRank, this.combinationRank);
+        int rankComparison = Integer.compare(other.combinationRank.getRank(), this.combinationRank.getRank());
         if (rankComparison != 0) {
             return rankComparison;
         }
