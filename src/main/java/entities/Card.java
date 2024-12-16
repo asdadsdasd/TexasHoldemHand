@@ -1,7 +1,9 @@
-package entities;
+package main.java.entities;
 
-import entities.enums.Rank;
-import entities.enums.Suit;
+import main.java.entities.enums.Rank;
+import main.java.entities.enums.Suit;
+
+import java.util.Objects;
 
 public class Card implements Comparable<Card> {
     private final Rank rank;
@@ -38,5 +40,18 @@ public class Card implements Comparable<Card> {
     @Override
     public String toString() {
         return "" + rank.getSymbol() + suit.getSymbol();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Card card = (Card) o;
+        return rank == card.rank && suit == card.suit;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rank, suit);
     }
 }

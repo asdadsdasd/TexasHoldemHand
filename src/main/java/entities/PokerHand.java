@@ -1,15 +1,15 @@
-package entities;
+package main.java.entities;
 
-import entities.enums.CombinationRank;
-import entities.enums.Rank;
-import entities.enums.Suit;
+import main.java.entities.enums.CombinationRank;
+import main.java.entities.enums.Rank;
+import main.java.entities.enums.Suit;
 
 import java.util.*;
 
 public class PokerHand implements Comparable<PokerHand> {
     private final List<Card> cards;
     private CombinationRank combinationRank;   // Сила комбинации
-    private int combinationPower;  // Сила внутри одной комбинации
+    private int combinationPower;              // Сила внутри одной комбинации
 
 
     public PokerHand(String hand) {
@@ -25,6 +25,11 @@ public class PokerHand implements Comparable<PokerHand> {
         cards = new ArrayList<>();
         for (String cardString : cardStrings) {
             cards.add(new Card(cardString));
+        }
+
+        Set<Card> uniqueCards = new HashSet<>(cards);
+        if (uniqueCards.size() != cards.size()) {
+            throw new IllegalArgumentException("Карты не должны дублироваться");
         }
 
         Collections.sort(cards);

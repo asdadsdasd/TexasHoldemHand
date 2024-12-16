@@ -1,4 +1,4 @@
-package entities.enums;
+package main.java.entities.enums;
 
 public enum CombinationRank {
     HighCard(0), Pair(1), TwoPair(2), ThreeOfAKind(3), Straight(4),

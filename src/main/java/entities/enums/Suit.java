@@ -1,4 +1,4 @@
-package entities.enums;
+package main.java.entities.enums;
 
 public enum Suit {
     SPADES('S'), HEARTS('H'), DIAMONDS('D'), CLUBS('C');

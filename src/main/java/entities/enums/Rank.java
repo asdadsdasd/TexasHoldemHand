@@ -1,4 +1,4 @@
-package entities.enums;
+package main.java.entities.enums;
 
 public enum Rank {
     TWO('2', 2), THREE('3', 3), FOUR('4', 4), FIVE('5', 5), SIX('6', 6),
