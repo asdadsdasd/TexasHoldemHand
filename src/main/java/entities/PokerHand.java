@@ -5,6 +5,7 @@ import main.java.entities.enums.Rank;
 import main.java.entities.enums.Suit;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class PokerHand implements Comparable<PokerHand> {
     private final List<Card> cards;
@@ -13,7 +14,7 @@ public class PokerHand implements Comparable<PokerHand> {
 
 
     public PokerHand(String hand) {
-        if (hand == null|| hand.isBlank()) {
+        if (hand == null || hand.isBlank()) {
             throw new IllegalArgumentException("Строка с картами не должна быть пустой");
         }
 
@@ -79,7 +80,7 @@ public class PokerHand implements Comparable<PokerHand> {
     private boolean checkForFlush() {
         Suit firstCardSuit = cards.get(0).getSuit();
         for (Card card : cards) {
-            if(card.getSuit().getSymbol() != firstCardSuit.getSymbol()) {
+            if (card.getSuit().getSymbol() != firstCardSuit.getSymbol()) {
                 return false;
             }
         }
@@ -93,31 +94,21 @@ public class PokerHand implements Comparable<PokerHand> {
     }
 
     private boolean checkForStraight() {
-        boolean isSequential = true;
-        for (int i = 1; i < cards.size(); i++) {
-            if (cards.get(i).getRank().getValue() != cards.get(i - 1).getRank().getValue() + 1) {
-                isSequential = false;
-                break;
-            }
-        }
+        boolean isSequential = IntStream.range(1, cards.size())
+                .allMatch(i -> cards.get(i).getRank().getValue() == cards.get(i - 1).getRank().getValue() + 1);
 
-        boolean isAceLowStraight = false;
-        if (!isSequential) {
-            isAceLowStraight = cards.get(4).getRank() == Rank.ACE &&
-                    cards.get(0).getRank() == Rank.TWO &&
-                    cards.get(1).getRank() == Rank.THREE &&
-                    cards.get(2).getRank() == Rank.FOUR &&
-                    cards.get(3).getRank() == Rank.FIVE;
-        }
+        boolean isAceLowStraight = !isSequential &&
+                cards.get(4).getRank() == Rank.ACE &&
+                cards.get(0).getRank() == Rank.TWO &&
+                cards.get(1).getRank() == Rank.THREE &&
+                cards.get(2).getRank() == Rank.FOUR &&
+                cards.get(3).getRank() == Rank.FIVE;
 
         if (isSequential || isAceLowStraight) {
             combinationRank = CombinationRank.Straight;
-            if (isAceLowStraight) {
-                combinationPower = cards.get(3).getRank().getValue();
-            }
-            else {
-                combinationPower = cards.get(4).getRank().getValue();;
-            }
+            combinationPower = isAceLowStraight
+                    ? cards.get(3).getRank().getValue()
+                    : cards.get(4).getRank().getValue();
             return true;
         }
         return false;
@@ -130,11 +121,13 @@ public class PokerHand implements Comparable<PokerHand> {
             combinationRank = CombinationRank.ThreeOfAKind;
             StringBuilder combinationPowerString = new StringBuilder(threeOfKindRank.getValue());
             combinationPowerString.append(String.format("%d", threeOfKindRank.getValue()));
+
             for (int i = cards.size() - 1; i >= 0; i--) {
                 if (cards.get(i).getRank().getValue() != threeOfKindRank.getValue()) {
                     combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
                 }
             }
+
             combinationPower = Integer.parseInt(combinationPowerString.toString());
             return true;
         }
@@ -148,65 +141,69 @@ public class PokerHand implements Comparable<PokerHand> {
             rankCounts.put(card.getRank(), rankCounts.getOrDefault(card.getRank(), 0) + 1);
         }
 
-        List<Rank> listOfPairs = new ArrayList<>();
+        List<Rank> pairs = new ArrayList<>();
         Rank singlePair = null;
+
         for (Map.Entry<Rank, Integer> entry : rankCounts.entrySet()) {
             if (entry.getValue() == 2) {
-                listOfPairs.add(entry.getKey());
-            }
-            else {
+                pairs.add(entry.getKey());
+            } else {
                 singlePair = entry.getKey();
             }
         }
-        StringBuilder combinationPowerString = new StringBuilder();
-        if (listOfPairs.size() == 2 && singlePair != null) {
-            if (listOfPairs.get(0).getValue() > listOfPairs.get(1).getValue()) {
-                combinationPowerString.append(listOfPairs.get(0).getValue()).
-                        append(String.format("%02d", cards.get(1).getRank().getValue())).
-                        append(String.format("%02d", singlePair.getValue()));
 
+        if (pairs.size() == 2 && singlePair != null) {
+            Rank higherPair = pairs.get(0);
+            Rank lowerPair = pairs.get(1);
+
+            if (higherPair.compareTo(lowerPair) < 0) {
+                higherPair = pairs.get(1);
+                lowerPair = pairs.get(0);
             }
-            else {
-                combinationPowerString.append(listOfPairs.get(1).getValue()).
-                        append(String.format("%02d", cards.get(0).getRank().getValue())).
-                        append(String.format("%02d", singlePair.getValue()));
-            }
+
+            String combinationPowerString = higherPair.getValue() +
+                    String.format("%02d", lowerPair.getValue()) +
+                    String.format("%02d", singlePair.getValue());
+
             combinationRank = CombinationRank.TwoPair;
-            combinationPower = Integer.parseInt(combinationPowerString.toString());
+            combinationPower = Integer.parseInt(combinationPowerString);
             return true;
         }
         return false;
     }
 
     private boolean checkForOnePair() {
-        Map<Rank, Integer> rankCounts = getRankCounts();
-        if (rankCounts.size() != 4 && !rankCounts.containsValue(2)) {
-            return false;
-        }
         Rank pairRank = getRankByCount(2);
-        StringBuilder combinationPowerString = new StringBuilder();
-        combinationPowerString.append(String.format("%d", pairRank.getValue()));
-        for (int i = cards.size() - 1; i >= 0; i--) {
-            if (cards.get(i).getRank().getValue() != pairRank.getValue()) {
-                combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
-            }
-        }
 
-        combinationRank = CombinationRank.Pair;
-        combinationPower = Integer.parseInt(combinationPowerString.toString());
-        return true;
+        if (pairRank != null) {
+            combinationRank = CombinationRank.Pair;
+            StringBuilder combinationPowerString = new StringBuilder(pairRank.getValue());
+
+            for (int i = cards.size() - 1; i >= 0; i--) {
+                if (cards.get(i).getRank().getValue() != pairRank.getValue()) {
+                    combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
+                }
+            }
+
+            combinationPower = Integer.parseInt(combinationPowerString.toString());
+            return true;
+        }
+        return false;
     }
 
     private boolean checkForHighCards() {
         Map<Rank, Integer> rankCounts = getRankCounts();
+
         if (rankCounts.size() != 5) {
             return false;
         }
+
         StringBuilder combinationPowerString = new StringBuilder();
-        combinationPowerString.append(String.format("%d", cards.get(4).getRank().getValue()));
-        for (int i = cards.size() - 2; i >= 0; i--) {
+
+        for (int i = cards.size() - 1; i >= 0; i--) {
             combinationPowerString.append(String.format("%02d", cards.get(i).getRank().getValue()));
         }
+
         combinationRank = CombinationRank.HighCard;
         combinationPower = Integer.parseInt(combinationPowerString.toString());
         return true;
@@ -237,9 +234,11 @@ public class PokerHand implements Comparable<PokerHand> {
 
     private Map<Rank, Integer> getRankCounts() {
         Map<Rank, Integer> rankCounts = new HashMap<>();
+
         for (Card card : cards) {
             rankCounts.put(card.getRank(), rankCounts.getOrDefault(card.getRank(), 0) + 1);
         }
+
         return rankCounts;
     }
 

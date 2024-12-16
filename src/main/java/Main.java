@@ -16,7 +16,7 @@ public class Main {
         hands.add(new PokerHand("2H 2C 2S JD TD")); // Сет
         hands.add(new PokerHand("2H 2C 5C 5D TD")); // Две пары
         hands.add(new PokerHand("2H 2C 5C JD TD")); // Пара
-        hands.add(new PokerHand("KS 2H 5C JD TD")); // Рука с высоким карманом
+        hands.add(new PokerHand("KS 2H 5C JD TD")); // Старшая карта
 
         Collections.sort(hands);
 
